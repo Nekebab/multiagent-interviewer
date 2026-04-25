@@ -1,2 +1,3 @@
-def main() -> None:
-    print("Hello from multiagent-interviewer!")
+"""multiagent-interviewer: Multi-agent AI interview system with hybrid RAG."""
+
+__version__ = "0.1.0"

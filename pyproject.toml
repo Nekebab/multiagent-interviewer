@@ -1,32 +1,107 @@
 [project]
 name = "multiagent-interviewer"
 version = "0.1.0"
-description = "Add your description here"
+description = "Multi-agent AI interview system with hybrid RAG"
 readme = "README.md"
-authors = [
-    { name = "Kirill", email = "kurill18031991@gmail.com" }
-]
 requires-python = ">=3.13"
+license = { text = "MIT" }
+authors = [
+    { name = "Kirill Aleshin", email = "Nekebab@users.noreply.github.com" },
+]
+keywords = ["llm", "rag", "langgraph", "multi-agent", "interview"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.13",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
 dependencies = [
-    "jinja2>=3.1.6",
-    "loguru>=0.7.3",
-    "pydantic>=2.13.3",
-    "pydantic-settings>=2.14.0",
-    "python-dotenv>=1.2.2",
-    "tenacity>=9.1.4",
+    "pydantic>=2.0",
+    "pydantic-settings>=2.0",
+    "python-dotenv>=1.0",
+    "loguru>=0.7",
+    "jinja2>=3.1",
+    "tenacity>=9.0",
 ]
 
 [project.scripts]
-multiagent-interviewer = "multiagent_interviewer:main"
-
-[build-system]
-requires = ["uv_build>=0.11.7,<0.12.0"]
-build-backend = "uv_build"
+multiagent-interviewer = "multiagent_interviewer.cli:main"
 
 [dependency-groups]
 dev = [
-    "mypy>=1.20.2",
-    "pytest>=9.0.3",
-    "pytest-mock>=3.15.1",
-    "ruff>=0.15.12",
+    "pytest>=8.0",
+    "pytest-mock>=3.12",
+    "pytest-cov>=5.0",
+    "ruff>=0.6",
+    "mypy>=1.10",
+    "pre-commit>=3.7",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/multiagent_interviewer"]
+
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+extend-exclude = ["data", "docs"]
+
+[tool.ruff.lint]
+# Selected rule families:
+#   E, W  — pycodestyle errors/warnings (PEP 8 compliance)
+#   F     — pyflakes (unused imports, undefined names)
+#   I     — isort (import ordering)
+#   N     — naming conventions
+#   UP    — pyupgrade (suggest modern Python syntax)
+#   B     — flake8-bugbear (likely bugs and design issues)
+#   SIM   — flake8-simplify (suggest simpler equivalents)
+#   C4    — flake8-comprehensions
+#   RUF   — ruff-specific rules
+select = ["E", "W", "F", "I", "N", "UP", "B", "SIM", "C4", "RUF"]
+ignore = []
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+
+# Mypy: static type checker. Catches bugs that Python's dynamic typing would miss.
+[tool.mypy]
+python_version = "3.11"
+files = ["src", "tests"]
+warn_return_any = true
+warn_unused_configs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+disallow_untyped_defs = true
+check_untyped_defs = true
+no_implicit_optional = true
+
+[[tool.mypy.overrides]]
+module = [
+    "faiss.*",
+    "pymorphy3.*",
+    "rank_bm25.*",
+    "sentence_transformers.*",
+    "mistralai.*",
+]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = [
+    "-v",
+    "--strict-markers",
+    "--tb=short",
+]
+markers = [
+    "slow: marks tests as slow (deselect with -m 'not slow')",
+    "integration: marks tests as integration tests (need API keys)",
 ]
