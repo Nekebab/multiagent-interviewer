@@ -29,5 +29,13 @@ repos:
           - pytest>=8.0
           - numpy>=2.0
           - pandas-stubs
+          - jinja2>=3.1
+          - tenacity>=9.0
+          - sentence-transformers>=5.4.1
+          - faiss-cpu>=1.13.2
+          - pymorphy3>=2.0.6
+          - rank-bm25>=0.2.2
+          - mistralai>=0.9,<1.2
+          - pandas>=3.0.2
         args: [--config-file=pyproject.toml]
         files: ^(src|tests)/.*\.py$
