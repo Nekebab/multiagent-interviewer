@@ -37,5 +37,6 @@ repos:
           - rank-bm25>=0.2.2
           - mistralai>=0.9,<1.2
           - pandas>=3.0.2
+          - langgraph
         args: [--config-file=pyproject.toml]
         files: ^(src|tests)/.*\.py$

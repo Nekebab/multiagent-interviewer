@@ -71,7 +71,7 @@ class ExpertAnalysis(BaseModel):
         description="Suggested next questions for the interviewer",
     )
     difficulty_adjustment: Literal["easier", "same", "harder"] = Field(
-        "same", description="Whether to adjust question difficulty"
+        default="same", description="Whether to adjust question difficulty"
     )
 
 
@@ -83,9 +83,11 @@ class ManagerDecision(BaseModel):
         ..., ge=0, le=10, description="Communication, honesty, engagement (0-10)"
     )
     direction: str = Field(..., description="What topic/depth to pursue next")
-    should_end_interview: bool = Field(False, description="Whether to terminate the interview now")
+    should_end_interview: bool = Field(
+        default=False, description="Whether to terminate the interview now"
+    )
     end_reason: str | None = Field(
-        None, description="If ending, why (e.g. 'enough signal to decide')"
+        default=None, description="If ending, why (e.g. 'enough signal to decide')"
     )
 
 

@@ -37,7 +37,6 @@ class TestCandidateInfo:
         assert c.grade is Grade.JUNIOR
 
     def test_grade_accepts_string(self) -> None:
-        # Pydantic should coerce the enum from a string value
         c = CandidateInfo(
             name="Alex",
             position="Dev",
