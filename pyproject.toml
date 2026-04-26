@@ -29,6 +29,7 @@ dependencies = [
     "pymorphy3>=2.0.6",
     "rank-bm25>=0.2.2",
     "numpy>=2.4.4",
+    "pandas-stubs>=3.0.0.260204",
 ]
 
 [project.scripts]
