@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
@@ -17,6 +18,31 @@ from multiagent_interviewer.prompts import render
 
 if TYPE_CHECKING:
     from multiagent_interviewer.llm.client import LLMClient
+
+
+def _strip_json_wrapper(text: str) -> str:
+    """If the LLM returned JSON despite our instructions, extract the message text."""
+    text = text.strip()
+    if text.startswith("```"):
+        text = text.strip("`").lstrip("json").strip()
+
+    if not (text.startswith("{") and text.endswith("}")):
+        return text
+
+    try:
+        parsed = json.loads(text)
+    except json.JSONDecodeError:
+        return text
+
+    if not isinstance(parsed, dict):
+        return text
+
+    for key in ("question", "message", "content", "text", "response"):
+        value = parsed.get(key)
+        if isinstance(value, str) and value:
+            return value
+
+    return text
 
 
 def make_interviewer_node(llm: LLMClient) -> Callable[[InterviewState], dict[str, Any]]:
@@ -46,7 +72,8 @@ def make_interviewer_node(llm: LLMClient) -> Callable[[InterviewState], dict[str
             manager_direction=manager_direction,
         )
 
-        question = llm.complete(prompt).strip()
+        raw_response = llm.complete(prompt).strip()
+        question = _strip_json_wrapper(raw_response)
         logger.info("Interviewer turn {}: asks question", state.current_turn)
 
         assistant_message = Message(role=Role.ASSISTANT, content=question)

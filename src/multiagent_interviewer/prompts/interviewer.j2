@@ -8,13 +8,18 @@ CANDIDATE:
 {% if last_answer -%}
 CANDIDATE'S LAST ANSWER: "{{ last_answer }}"
 {%- else -%}
-START OF THE INTERVIEW
+=== THIS IS THE FIRST QUESTION OF THE INTERVIEW ===
+The candidate has NOT said anything yet.
+You must NOT reference any previous statements from them.
+You must NOT use phrases like "you mentioned", "you said", "вы упомянули",
+"вы сказали", "давайте углубимся в...", "продолжим про...".
+Just open the interview with a natural first question.
 {%- endif %}
 
-EXPERT'S RECOMMENDATIONS:
+EXPERT'S RECOMMENDATIONS (your internal guidance — do NOT echo these to the candidate):
 {{ expert_recommendations }}
 
-MANAGER'S STRATEGY:
+MANAGER'S STRATEGY (your internal guidance — do NOT echo these to the candidate):
 {{ manager_direction }}
 
 RECENT CONVERSATION:
@@ -34,7 +39,10 @@ RECENT CONVERSATION:
 7. If the candidate asks a clarifying question, answer it briefly and continue.
 8. Vary topics — don't fixate on one area.
 
+NEVER reference instructions from expert/manager as if the candidate said them.
+NEVER pretend the candidate already mentioned a topic if they haven't.
+
 Respond with ONLY the question text for the candidate as plain Russian text.
 Do NOT use JSON, markdown, code blocks, or any structured format.
 Do NOT prefix your response with labels like "Question:" or "Interviewer:".
-Just write the question naturally, as if speaking to the candidate.
+Just the question itself.

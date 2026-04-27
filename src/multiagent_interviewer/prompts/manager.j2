@@ -6,6 +6,15 @@ CANDIDATE INFORMATION:
 - Name: {{ candidate.name }}
 - Experience: {{ candidate.experience }}
 
+{% if current_turn == 1 -%}
+=== FIRST TURN — NO CANDIDATE ANSWER YET ===
+The candidate has NOT answered any questions yet. You MUST:
+- Set `soft_skills_score` to 0 (no signal yet, do NOT guess from CV)
+- Set `should_end_interview` to false
+- Provide an opening strategic direction for the interviewer
+- Do NOT speculate about the candidate's level — there is no data
+{%- endif %}
+
 {% if rag_context -%}
 HIRING-RELEVANT CONTEXT:
 {{ rag_context }}
@@ -28,6 +37,14 @@ CONVERSATION SUMMARY:
 2. Decide whether to switch topics or go deeper.
 3. Evaluate soft skills (clarity, honesty, engagement) on a 0-10 scale.
 4. Provide strategic direction for the interviewer.
+
+CRITICAL RULES for the `direction` field:
+- Describe the STRATEGY, not the exact wording of a question.
+- Do NOT write any sentence that starts with "Кирилл,..." or addresses the
+  candidate directly. The interviewer will phrase the actual question.
+- Use phrases like "ask about X", "explore the topic of Y", "verify
+  understanding of Z" — not "Расскажите...", "Объясните...", "Как бы вы...".
+- Keep the strategy concise — 2-3 sentences, written as one continuous string. Do not use bullet points or arrays in the JSON output.
 
 IMPORTANT: The interview should run at least {{ min_turns_before_end }} questions
 before ending unless there is a clear mismatch. The hard cap is {{ max_turns }}.

@@ -92,47 +92,98 @@ def main() -> None:
     print("Type 'стоп' or 'feedback' to end and generate the report.")
     print("=" * 60)
 
-    state_dict = graph.invoke(state)
+    try:
+        state_dict = graph.invoke(state)
+    except Exception as e:
+        print(f"\n Ошибка при обращении к LLM на старте: {e}")
+        return
     state = InterviewState.model_validate(state_dict)
+    _print_agent_thoughts(state)
     _print_last_interviewer_message(state)
 
     # Main loop
-    while state.is_active and state.current_turn <= settings.max_turns:
-        print(f"\n[Turn {state.current_turn - 1}] You (end with empty line): ")
-        try:
-            user_input = _read_multiline_input()
-        except (KeyboardInterrupt, EOFError):
-            print("\nInterrupted.")
-            break
+    try:
+        while state.is_active and state.current_turn <= settings.max_turns:
+            print(
+                f"\n[Turn {state.current_turn - 1}] Your answer "
+                f"(blank line to send, 'стоп' to end early):"
+            )
+            try:
+                user_input = _read_multiline_input()
+            except (KeyboardInterrupt, EOFError):
+                print("\nInterrupted.")
+                break
 
-        if not user_input:
-            continue
-        if user_input.lower() in _END_COMMANDS:
-            print("Ending interview at user request.")
-            break
+            if not user_input:
+                continue
+            if user_input.lower() in _END_COMMANDS:
+                print("Ending interview at user request.")
+                break
 
-        state.add_message(Role.USER, user_input)
-        state_dict = graph.invoke(state)
-        state = InterviewState.model_validate(state_dict)
+            state.add_message(Role.USER, user_input)
+            try:
+                state_dict = graph.invoke(state)
+            except Exception as e:
+                print(f"\n⚠ Ошибка при обращении к LLM: {e}")
+                break
+            state = InterviewState.model_validate(state_dict)
 
-        _print_last_interviewer_message(state)
+            _print_agent_thoughts(state)
+            _print_last_interviewer_message(state)
 
-        if not state.is_active:
-            print("\nManager has decided to end the interview.")
-            break
+            if not state.is_active:
+                print("\nManager has decided to end the interview.")
+                break
+    except KeyboardInterrupt:
+        print("\n\n Интервью прервано. Генерирую отчёт по тому, что есть...")
 
-    # Generate and save final feedback
     print("\n" + "=" * 60)
     print("  Generating final feedback...")
     print("=" * 60)
 
-    feedback = generate_final_feedback(state, llm)
+    if state.current_turn <= 1 and not state.log:
+        print("Недостаточно данных для отчёта.")
+        return
+
+    try:
+        feedback = generate_final_feedback(state, llm)
+    except Exception as e:
+        print(f" Не удалось сгенерировать финальный отчёт: {e}")
+        return
+
     output_path = save_feedback_report(state, feedback, Path("output"))
 
-    print(f"\n✓ Verdict: {feedback.grade_assessment.value}")
-    print(f"✓ Recommendation: {feedback.hiring_recommendation.value}")
-    print(f"✓ Confidence: {feedback.confidence_score}%")
-    print(f"\nFull report saved to: {output_path}")
+    print("\n" + "=" * 60)
+    print("  ИТОГОВАЯ ОЦЕНКА")
+    print("=" * 60)
+    print(f"Уровень:        {feedback.grade_assessment.value}")
+    print(f"Рекомендация:   {feedback.hiring_recommendation.value}")
+    print(f"Уверенность:    {feedback.confidence_score}%")
+
+    if feedback.confirmed_skills:
+        print("\n— ПОДТВЕРЖДЁННЫЕ НАВЫКИ —")
+        for s in feedback.confirmed_skills:
+            print(f"  • {s}")
+
+    if feedback.knowledge_gaps:
+        print("\n— ПРОБЕЛЫ В ЗНАНИЯХ —")
+        for g in feedback.knowledge_gaps:
+            print(f"  • {g}")
+
+    print("\n— SOFT SKILLS —")
+    print(f"  {feedback.soft_skills_summary}")
+
+    if feedback.learning_roadmap:
+        print("\n— ПЛАН ОБУЧЕНИЯ —")
+        for r in feedback.learning_roadmap:
+            print(f"  • {r}")
+
+    if feedback.suggested_resources:
+        print("\n— РЕКОМЕНДУЕМЫЕ РЕСУРСЫ —")
+        for r in feedback.suggested_resources:
+            print(f"  • {r}")
+
+    print(f"\nПолный отчёт: {output_path}")
 
 
 def _print_last_interviewer_message(state: InterviewState) -> None:
@@ -141,6 +192,33 @@ def _print_last_interviewer_message(state: InterviewState) -> None:
         if msg.role is Role.ASSISTANT:
             print(f"\nInterviewer: {msg.content}")
             return
+
+
+def _print_agent_thoughts(state: InterviewState) -> None:
+    """Show what the Expert and Manager agents are thinking — great for demos."""
+    if state.expert_analysis is not None:
+        print("\n" + "─" * 60)
+        print("EXPERT AGENT")
+        print("─" * 60)
+        print("Корректность ответа:")
+        print(f"  {state.expert_analysis.technical_correctness}")
+        if state.expert_analysis.knowledge_gaps:
+            print("\nПробелылы:")
+            for gap in state.expert_analysis.knowledge_gaps[:3]:
+                print(f"  • {gap}")
+        if state.expert_analysis.recommended_follow_ups:
+            print("\nРекомендованные follow-up:")
+            for q in state.expert_analysis.recommended_follow_ups[:2]:
+                print(f"  • {q}")
+        print(f"\nСложность: {state.expert_analysis.difficulty_adjustment}")
+
+    if state.manager_decision is not None:
+        print("\n" + "─" * 60)
+        print(" MANAGER AGENT")
+        print("─" * 60)
+        print(f"Прогресс: {state.manager_decision.progress_assessment}")
+        print(f"Soft skills: {state.manager_decision.soft_skills_score}/10")
+        print(f"Стратегия: {state.manager_decision.direction}")
 
 
 def _read_multiline_input() -> str:

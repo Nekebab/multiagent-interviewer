@@ -6,7 +6,7 @@ from datetime import datetime
 from enum import StrEnum
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class Role(StrEnum):
@@ -83,6 +83,17 @@ class ManagerDecision(BaseModel):
         ..., ge=0, le=10, description="Communication, honesty, engagement (0-10)"
     )
     direction: str = Field(..., description="What topic/depth to pursue next")
+
+    @field_validator("direction", mode="before")
+    @classmethod
+    def _coerce_direction_to_string(cls, value: object) -> object:
+        """Accept either a string or a list of strings — LLMs sometimes return
+        a JSON array when prompted with bullet-point language. We coerce
+        lists into a single newline-separated string."""
+        if isinstance(value, list):
+            return "\n".join(f"- {item}" for item in value if item)
+        return value
+
     should_end_interview: bool = Field(
         default=False, description="Whether to terminate the interview now"
     )
@@ -102,6 +113,15 @@ class FinalFeedback(BaseModel):
     soft_skills_summary: str
     learning_roadmap: list[str] = Field(default_factory=list)
     suggested_resources: list[str] = Field(default_factory=list)
+    behavioral_red_flags: list[str] = Field(
+        default_factory=list,
+        description=(
+            "Specific moments during the interview that raise concerns about "
+            "professional fit: off-topic anecdotes mid-answer, evasions, "
+            "dishonesty, fundamental confusion that wasn't recovered. "
+            "Empty list if none observed."
+        ),
+    )
 
 
 # a structured record of every turn, kept for the final report.

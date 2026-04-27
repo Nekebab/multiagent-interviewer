@@ -131,4 +131,4 @@ class TestInterviewerPrompt:
             expert_recommendations="N/A",
             manager_direction="start with basics",
         )
-        assert "START OF THE INTERVIEW" in rendered
+        assert "FIRST QUESTION OF THE INTERVIEW" in rendered

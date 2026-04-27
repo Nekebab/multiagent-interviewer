@@ -51,6 +51,9 @@ def make_manager_node(
         )
 
         decision = llm.complete_structured(prompt, ManagerDecision)
+        if state.current_turn == 1:
+            decision = decision.model_copy(update={"soft_skills_score": 0})
+
         logger.info(
             "Manager turn {}: should_end={}, score={}",
             state.current_turn,

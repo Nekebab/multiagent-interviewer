@@ -86,7 +86,11 @@ extend-exclude = ["data", "docs"]
 #   C4    — flake8-comprehensions
 #   RUF   — ruff-specific rules
 select = ["E", "W", "F", "I", "N", "UP", "B", "SIM", "C4", "RUF"]
-ignore = []
+ignore = [
+    "RUF001",
+    "RUF002",
+    "RUF003",
+]
 
 [tool.ruff.format]
 quote-style = "double"
