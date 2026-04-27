@@ -1,0 +1,23 @@
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: multiagent-interviewer:latest
+
+    env_file:
+      - .env
+
+    stdin_open: true
+    tty: true
+
+    volumes:
+      - ./src:/app/src:ro
+
+      - hf-cache:/home/app/.cache/huggingface
+
+      - ./output:/app/output
+
+volumes:
+  hf-cache:
