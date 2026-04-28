@@ -2,13 +2,13 @@
 
 > AI-симулятор технического собеседования. Три специализированных агента (Expert, Manager, Interviewer) взаимодействуют через [LangGraph](https://github.com/langchain-ai/langgraph), проводят реалистичное интервью и формируют откалиброванный найм-фидбэк.
 
-[![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/downloads/release/python-311/)
+[![Python 3.13](https://img.shields.io/badge/python-3.13-blue.svg)](https://www.python.org/downloads/release/python-313/)
 [![Tests](https://img.shields.io/badge/tests-110%20passing-brightgreen.svg)](#тесты)
 [![Type-checked: mypy](https://img.shields.io/badge/type--checked-mypy-blue.svg)](https://mypy.readthedocs.io/)
 [![Linted: ruff](https://img.shields.io/badge/linted-ruff-red.svg)](https://github.com/astral-sh/ruff)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-[English version](README.md) · [Архитектура](docs/ARCHITECTURE.md) · [Промпты](docs/PROMPTING.md)
+[English version](README.md) · [Архитектура](docs/ARCHITECTURE.ru.md) · [Промпты](docs/PROMPTING.ru.md)
 
 ---
 
@@ -116,7 +116,7 @@ graph LR
 
 Каждый ход — одно обращение к графу: `expert → manager → interviewer → END`. Граф запускается раз на ответ кандидата. Между ходами CLI собирает ввод. State — Pydantic `BaseModel`, каждая трансформация валидируется.
 
-Подробно про промпты, дизайн state, retry-логику и trade-offs: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+Подробно про промпты, дизайн state, retry-логику и trade-offs: [`docs/ARCHITECTURE.ru.md`](docs/ARCHITECTURE.ru.md).
 
 ## Ключевые особенности
 
@@ -133,7 +133,7 @@ RAG комбинирует лексический поиск (BM25 с русск
 - Детерминированный post-processing ограничивает confidence по числу ходов с ответами.
 - Поведенческие red flags (off-topic, уход от ответа, базовые ошибки) понижают рекомендацию независимо от технического содержания.
 
-Это решает **positivity bias** — известную проблему RLHF-моделей, склонных к мягким оценкам. Подробно — [`docs/ARCHITECTURE.md#calibration`](docs/ARCHITECTURE.md#calibration).
+Это решает **positivity bias** — известную проблему RLHF-моделей, склонных к мягким оценкам. Подробно — [`docs/ARCHITECTURE.ru.md#калибровка`](docs/ARCHITECTURE.ru.md#калибровка).
 
 ### Defense-in-depth для structured output
 LLM иногда возвращают невалидный JSON несмотря на инструкции: массивы вместо строк, объекты-как-схемы вместо данных, JSON-обёртки в plain-text полях. Система обрабатывает это в трёх слоях:
@@ -152,7 +152,7 @@ LLM иногда возвращают невалидный JSON несмотря
 ## Стек
 
 | Слой | Инструмент |
-|---|---|---|
+|---|---|
 | Оркестрация | LangGraph |
 | Валидация | Pydantic v2 |
 | LLM | Mistral (default), pluggable |
@@ -247,7 +247,7 @@ uv run multiagent-interviewer
 
 - **Manager-агент периодически возвращал `direction` как массив строк вместо одной строки.** Pydantic `field_validator(mode="before")` приводит list к строке через newline-join, не меняя схему.
 
-- **Первая версия финального фидбэка выдавала "Strong Hire 90%" по одному ответу.** Решилось калибровочной таблицей в промпте, детерминированными confidence caps по количеству ходов, отдельным вердиктом `INSUFFICIENT_DATA`, и downgrade рекомендации при поведенческих red flags. Подробно — [`docs/ARCHITECTURE.md#calibration`](docs/ARCHITECTURE.md#calibration).
+- **Первая версия финального фидбэка выдавала "Strong Hire 90%" по одному ответу.** Решилось калибровочной таблицей в промпте, детерминированными confidence caps по количеству ходов, отдельным вердиктом `INSUFFICIENT_DATA`, и downgrade рекомендации при поведенческих red flags. Подробно — [`docs/ARCHITECTURE.ru.md#калибровка`](docs/ARCHITECTURE.ru.md#калибровка).
 
 ## Roadmap
 

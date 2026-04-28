@@ -2,7 +2,7 @@
 
 > AI-powered technical interview coach. Three specialized agents (Expert, Manager, Interviewer) collaborate via [LangGraph](https://github.com/langchain-ai/langgraph) to conduct realistic interviews and produce calibrated hiring feedback.
 
-[![Python 3.13](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/downloads/release/python-311/)
+[![Python 3.13](https://img.shields.io/badge/python-3.13-blue.svg)](https://www.python.org/downloads/release/python-313/)
 [![Tests](https://img.shields.io/badge/tests-110%20passing-brightgreen.svg)](#tests)
 [![Type-checked: mypy](https://img.shields.io/badge/type--checked-mypy-blue.svg)](https://mypy.readthedocs.io/)
 [![Linted: ruff](https://img.shields.io/badge/linted-ruff-red.svg)](https://github.com/astral-sh/ruff)

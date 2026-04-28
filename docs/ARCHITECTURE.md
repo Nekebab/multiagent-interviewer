@@ -1,17 +1,17 @@
 # Architecture
 
-This document explains how the system is built, what design decisions were made, and what trade-offs they involve. It complements the [README](../README.md) — read that first if you haven't.
+> [Русская версия](ARCHITECTURE.ru.md)
+
+This document explains how the system is built, what design decisions were made, and what trade-offs they involve. It complements the [README](../README.md).
 
 ## Table of contents
 
 - [Overview](#overview)
 - [State and data flow](#state-and-data-flow)
 - [Agents](#agents)
-- [LLM client and provider abstraction](#llm-client-and-provider-abstraction)
 - [Retrieval (Hybrid RAG)](#retrieval-hybrid-rag)
 - [Calibration](#calibration)
 - [Error handling and retries](#error-handling-and-retries)
-- [Why these choices](#why-these-choices)
 
 ## Overview
 
@@ -72,8 +72,6 @@ Why factories instead of classes or globals?
 Reads the candidate's last answer, optionally retrieves context from the RAG knowledge base, and asks the LLM to evaluate technical correctness, identify knowledge gaps, recommend follow-up questions, and adjust difficulty.
 
 Output: `ExpertAnalysis` (Pydantic).
-
-On the very first turn there's no candidate answer yet — the expert returns an empty dict, leaving `state.expert_analysis` as `None`. This skip is important: running the expert on no data would waste an LLM call and produce hallucinated analysis.
 
 ### Manager
 

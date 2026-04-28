@@ -1,10 +1,7 @@
 # Examples
+> [Русская версия](README.ru.md)
 
-Sample interview reports produced by the system. Useful for:
-- Seeing what a complete output looks like before you run anything
-- Understanding the structure of a `FinalFeedback` JSON
-- Reviewing the calibration of verdicts and confidence scores
-
+Sample interview reports produced by the system.
 ## File naming
 
 ```

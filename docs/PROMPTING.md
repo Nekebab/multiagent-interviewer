@@ -1,5 +1,7 @@
 # Prompt engineering
 
+> [Русская версия](PROMPTING.ru.md)
+
 This document describes how prompts are structured, what techniques are used, and which failure modes each technique addresses.
 
 The three agent prompts live in `src/multiagent_interviewer/prompts/`:
@@ -16,8 +18,6 @@ f-strings are tempting for short prompts but fall apart as soon as you need:
 - Loops over messages
 - Stripping whitespace at template boundaries (`{%- ... -%}`)
 - Catching missing variables before send (with `StrictUndefined`)
-
-Jinja2 with `StrictUndefined` is non-negotiable — it raises `UndefinedError` at render time if you forget to pass a variable, instead of silently substituting an empty string. We've all seen LLMs respond to "Hello { } I am a ..." with confused output. `StrictUndefined` makes this impossible.
 
 ## Structured output technique
 
@@ -191,7 +191,7 @@ Three observations:
 
 **Calibration table is explicit.** "How sure should I be?" is a calibration question. The prompt answers it directly with quantitative thresholds tied to data volume.
 
-**Disqualifying signals are framed as overrides.** Most of the prompt asks the model to weigh evidence; this section says "any of these alone is enough." This matches how human interviewers actually work — a single off-topic deflection is a hard "no" regardless of technical knowledge.
+**Disqualifying signals are framed as overrides.** Most of the prompt asks the model to weigh evidence; this section says "any of these alone is enough."
 
 ## What I'd do differently with more time
 
@@ -199,9 +199,7 @@ A few patterns worth adopting in larger systems:
 
 **Versioned prompts.** Each agent prompt should be stamped with a version (`expert.v3.j2`). When you change a prompt, bumping the version preserves a record. This becomes critical when running A/B tests on prompt changes against an eval set.
 
-**Prompt-as-config.** Externalize prompts to YAML/JSON if they need to be tuned without redeploying. For this project, having them as Jinja2 files in the repo is fine — the tradeoff is reproducibility (everything in git) over flexibility.
-
-**Prompt eval framework.** Synthetic interview transcripts paired with expected verdicts. Run them through the system, measure agreement. Without this, prompt changes are guesswork.
+**Prompt-as-config.** Externalize prompts to YAML/JSON if they need to be tuned without redeploying. For this project, having them as Jinja2 files in the repo is fine — the tradeoff is reproducibility over flexibility.
 
 **Few-shot example pool.** Currently the structured-output example is auto-generated from the schema (zero-shot). Real production systems maintain a small pool of high-quality input/output pairs and pick the most relevant ones at prompt time. This typically halves the error rate on edge cases.
 
