@@ -33,7 +33,6 @@ coverage.xml
 docs/
 tests/
 output/
-data/
 
 
 .DS_Store

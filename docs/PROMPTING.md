@@ -199,7 +199,7 @@ A few patterns worth adopting in larger systems:
 
 **Versioned prompts.** Each agent prompt should be stamped with a version (`expert.v3.j2`). When you change a prompt, bumping the version preserves a record. This becomes critical when running A/B tests on prompt changes against an eval set.
 
-**Prompt-as-config.** Externalize prompts to YAML/JSON if they need to be tuned without redeploying. For this project, having them as Jinja2 files in the repo is fine — the tradeoff is reproducibility over flexibility.
+**Prompt-as-config.** Externalize prompts to YAML/JSON if they need to be tuned without redeploying. For this project, having them as Jinja2 files in the repo — the tradeoff is reproducibility over flexibility.
 
 **Few-shot example pool.** Currently the structured-output example is auto-generated from the schema (zero-shot). Real production systems maintain a small pool of high-quality input/output pairs and pick the most relevant ones at prompt time. This typically halves the error rate on edge cases.
 

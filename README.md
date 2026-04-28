@@ -1,4 +1,4 @@
-# Multi-Agent Interviewer in Russian
+# Multi-Agent Interviewer
 
 > AI-powered technical interview coach. Three specialized agents (Expert, Manager, Interviewer) collaborate via [LangGraph](https://github.com/langchain-ai/langgraph) to conduct realistic interviews and produce calibrated hiring feedback.
 

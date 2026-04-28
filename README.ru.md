@@ -1,4 +1,4 @@
-# Multi-Agent Interviewer in Russian
+# Multi-Agent Interviewer
 
 > AI-симулятор технического собеседования. Три специализированных агента (Expert, Manager, Interviewer) взаимодействуют через [LangGraph](https://github.com/langchain-ai/langgraph), проводят реалистичное интервью и формируют откалиброванный найм-фидбэк.
 

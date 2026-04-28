@@ -60,14 +60,24 @@ def _initialize_rag() -> RagSystem | None:
             expert_csv,
             manager_csv,
         )
+        print(" No RAG knowledge bases found — running in LLM-only mode")
         return None
 
-    return RagSystem.from_csv(
+    print("\n Initializing RAG knowledge bases...")
+    if expert_path:
+        print(f"  • Expert KB:  {expert_path}")
+    if manager_path:
+        print(f"  • Manager KB: {manager_path}")
+
+    rag = RagSystem.from_csv(
         expert_csv=expert_path,
         manager_csv=manager_path,
         chunk_size=settings.chunk_size,
         chunk_overlap=settings.chunk_overlap,
     )
+
+    print("RAG ready — hybrid retrieval (BM25 + bi-encoder + cross-encoder)")
+    return rag
 
 
 def main() -> None:
@@ -195,7 +205,7 @@ def _print_last_interviewer_message(state: InterviewState) -> None:
 
 
 def _print_agent_thoughts(state: InterviewState) -> None:
-    """Show what the Expert and Manager agents are thinking — great for demos."""
+    """Show what the Expert and Manager agents are thinking."""
     if state.expert_analysis is not None:
         print("\n" + "─" * 60)
         print("EXPERT AGENT")

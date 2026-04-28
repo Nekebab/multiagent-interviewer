@@ -31,6 +31,13 @@ def make_manager_node(
             results = rag.search_manager(query)
             if results:
                 rag_context = "\n".join(f"- {r}" for r in results)
+                logger.info(
+                    "Manager: retrieved {} snippets from HR knowledge base",
+                    len(results),
+                )
+                print(f" RAG: retrieved {len(results)} relevant snippets from manager KB")
+                preview = results[0][:100].replace("\n", " ")
+                print(f'     → "{preview}..."')
 
         # Format the expert's analysis as text for the prompt
         expert_text = (

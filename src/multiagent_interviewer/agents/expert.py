@@ -33,11 +33,19 @@ def make_expert_node(
 
         # Pull RAG context (if available) using the candidate's answer as query.
         rag_context = ""
+        rag_snippets_count = 0
         if rag is not None and rag.expert is not None:
             results = rag.search_expert(last_answer)
             if results:
                 rag_context = "\n".join(f"- {r}" for r in results)
-                logger.debug("Expert: pulled {} RAG snippets", len(results))
+                rag_snippets_count = len(results)
+                logger.info(
+                    "Expert: retrieved {} snippets from knowledge base",
+                    rag_snippets_count,
+                )
+                print(f"RAG: retrieved {rag_snippets_count} relevant snippets from expert KB")
+                preview = results[0][:100].replace("\n", " ")
+                print(f'     → "{preview}..."')
 
         prompt = render(
             "expert.j2",
