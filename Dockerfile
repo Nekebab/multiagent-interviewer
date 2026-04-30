@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.7
 
-FROM python:3.13-slim-bookworm AS builder
+FROM python:3.13 AS builder
 
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -34,14 +34,18 @@ COPY LICENSE ./
 RUN uv sync --frozen --no-dev
 
 
-FROM python:3.13-slim-bookworm AS runtime
+FROM python:3.13 AS runtime
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PATH="/app/.venv/bin:$PATH"
 
+
 RUN groupadd --gid 1000 app \
     && useradd --uid 1000 --gid app --shell /bin/bash --create-home app
+
+RUN mkdir -p /home/app/.cache/huggingface \
+    && chown -R app:app /home/app/.cache
 
 WORKDIR /app
 

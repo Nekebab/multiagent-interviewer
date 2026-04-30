@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 
 from loguru import logger
@@ -22,12 +23,21 @@ from multiagent_interviewer.rag.system import RagSystem
 _END_COMMANDS = {"стоп", "stop", "завершить", "фидбэк", "feedback", "отчет"}
 
 
+def _safe_input(prompt: str) -> str:
+    """Read one line from stdin, robust to long UTF-8 input."""
+    print(prompt, end="", flush=True)
+    line = sys.stdin.readline()
+    if not line:
+        raise EOFError
+    return line.rstrip("\n")
+
+
 def _prompt_candidate_info() -> CandidateInfo:
     """Interactive collection of candidate info from stdin."""
     print("\n=== Candidate setup ===")
-    name = input("Name: ").strip()
-    position = input("Position (e.g. 'Backend Developer'): ").strip()
-    grade_input = input("Grade [Junior/Middle/Senior]: ").strip()
+    name = _safe_input("Name: ").strip()
+    position = _safe_input("Position (e.g. 'Backend Developer'): ").strip()
+    grade_input = _safe_input("Grade [Junior/Middle/Senior]: ").strip()
 
     try:
         grade = Grade(grade_input.capitalize())
@@ -35,7 +45,7 @@ def _prompt_candidate_info() -> CandidateInfo:
         print(f"Unknown grade '{grade_input}', defaulting to Junior")
         grade = Grade.JUNIOR
 
-    experience = input("Experience and skills: ").strip()
+    experience = _safe_input("Experience and skills: ").strip()
 
     return CandidateInfo(
         name=name,
@@ -233,10 +243,14 @@ def _print_agent_thoughts(state: InterviewState) -> None:
 
 def _read_multiline_input() -> str:
     """Read multi-line input from stdin until an empty line."""
+    print("(Type your answer; press Enter on an empty line to send)")
     lines: list[str] = []
     while True:
-        line = input()
-        if not line.strip() and lines:
+        line = sys.stdin.readline()
+        if not line:
+            break
+        line = line.rstrip("\n")
+        if not line:
             break
         lines.append(line)
     return "\n".join(lines).strip()

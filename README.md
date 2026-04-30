@@ -1,259 +1,222 @@
 # Multi-Agent Interviewer
 
-> AI-powered technical interview coach. Three specialized agents (Expert, Manager, Interviewer) collaborate via [LangGraph](https://github.com/langchain-ai/langgraph) to conduct realistic interviews and produce calibrated hiring feedback.
+> AI-симулятор технического собеседования. Три специализированных агента (Expert, Manager, Interviewer) взаимодействуют через [LangGraph](https://github.com/langchain-ai/langgraph), проводят реалистичное интервью и формируют откалиброванный найм-фидбэк.
 
 [![Python 3.13](https://img.shields.io/badge/python-3.13-blue.svg)](https://www.python.org/downloads/release/python-313/)
-[![Tests](https://img.shields.io/badge/tests-110%20passing-brightgreen.svg)](#tests)
+[![Tests](https://img.shields.io/badge/tests-110%20passing-brightgreen.svg)](#тесты)
 [![Type-checked: mypy](https://img.shields.io/badge/type--checked-mypy-blue.svg)](https://mypy.readthedocs.io/)
 [![Linted: ruff](https://img.shields.io/badge/linted-ruff-red.svg)](https://github.com/astral-sh/ruff)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-[Русская версия](README.ru.md) · [Architecture](docs/ARCHITECTURE.md) · [Prompting](docs/PROMPTING.md)
+[English version](README.en.md) · [Архитектура](docs/ARCHITECTURE.ru.md) · [Промпты](docs/PROMPTING.ru.md)
 
 ---
 
-## What this project does
+![demo](docs/demo.gif)
 
-Conducts a technical interview with a candidate, end-to-end:
+## Что делает проект
 
-1. Collects the candidate's stated role, level, and experience.
-2. Asks targeted technical questions, adapting difficulty based on previous answers.
-3. After each turn, three agents run in sequence:
-   - **Expert** analyzes technical correctness and identifies knowledge gaps.
-   - **Manager** evaluates progress, soft skills, and decides on strategic direction.
-   - **Interviewer** generates the next question.
-4. At the end, produces a calibrated final report — verdict, confidence, confirmed skills, knowledge gaps, behavioral red flags, learning roadmap.
+Проводит технические интервью end-to-end:
 
-The output is a structured JSON report you can pipe into any downstream system, plus a human-readable summary in the terminal.
+1. Собирает данные кандидата — позиция, уровень, опыт.
+2. Задаёт целевые технические вопросы, адаптируя сложность под предыдущие ответы.
+3. После каждого хода последовательно работают три агента:
+   - **Expert** анализирует техническую корректность ответа и фиксирует пробелы в знаниях.
+   - **Manager** оценивает прогресс, soft skills и решает стратегическое направление.
+   - **Interviewer** формулирует следующий вопрос.
+4. В конце выдаёт откалиброванный отчёт — вердикт, уверенность, подтверждённые навыки, пробелы, поведенческие red flags, план обучения.
 
-## Why this is different from "just call ChatGPT"
+Итог — структурированный JSON-отчёт для downstream-обработки + читаемое summary в терминале.
 
-A naive ChatGPT prompt produces a single agent with no separation of concerns: it asks questions, evaluates them, and decides when to stop, all in one tangled context. This system separates these into specialized agents with structured handoffs, applies deterministic policies on top of LLM decisions (e.g. minimum interview length, hard caps on confidence at low data volume, behavioral-flag-triggered downgrades), and runs hybrid retrieval over an external knowledge base when available.
+## Чем отличается от "просто прокинуть в ChatGPT"
 
-The result is more consistent verdicts, traceable reasoning per turn, and resistance to common LLM failure modes (positivity bias, hallucinated structure, rate-limit cascades).
+Простой промпт в ChatGPT — это один агент без разделения ответственности: задаёт вопросы, оценивает их, решает когда заканчивать — всё в одном перепутанном контексте. Эта система разделяет роли по специализированным агентам со структурированными передачами данных, применяет детерминированные политики поверх LLM-решений (минимальная длина интервью, hard caps на confidence при малом количестве данных, downgrade рекомендации при поведенческих red flags), и работает с гибридным retrieval по внешней базе знаний при её наличии.
 
-## Demo
+В результате — более стабильные вердикты, прозрачная цепочка рассуждений на каждом ходу, устойчивость к типичным проблемам LLM (positivity bias, галлюцинированная структура, каскадные rate-limit ошибки).
 
-```
-============================================================
-  MULTI-AGENT INTERVIEW COACH
-============================================================
+## Демо
 
-=== Candidate setup ===
-Name: Alex
-Position: Backend Developer
-Grade: Middle
-Experience: 4 years Python, FastAPI, PostgreSQL
+[![asciicast](https://asciinema.org/a/wEfLfBBTaM7VerlS.svg)](https://asciinema.org/a/wEfLfBBTaM7VerlS)
 
-────────────────────────────────────────────────────────────
- MANAGER AGENT
-────────────────────────────────────────────────────────────
-Прогресс: Интервью только началось, данных пока нет.
-Soft skills: 0/10
-Стратегия: Начать с открытого вопроса о ключевом проекте,
-оценить структурированность изложения и глубину технических
-решений.
+Полный пример отчёта лежит в [`examples/interview_Anatoliy_example.json`](examples/interview_Anatoliy_example.json).
 
-Interviewer: Расскажите о самой сложной технической задаче,
-с которой вы сталкивались за последний год. Какое решение
-выбрали и почему?
+## Быстрый старт
 
-[Turn 1] Your answer (blank line to send):
-> ...
-
-────────────────────────────────────────────────────────────
- EXPERT AGENT
-────────────────────────────────────────────────────────────
-Корректность ответа: технически грамотное описание...
-Пробелы:
-  • Не упомянута обработка race conditions
-  • ...
-
-────────────────────────────────────────────────────────────
- ИТОГОВАЯ ОЦЕНКА
-============================================================
-Уровень:        Middle
-Рекомендация:   Hire
-Уверенность:    78%
-```
-
-A complete sample report lives in [`examples/`](examples/).
-
-## Quick start
-
-You'll need [Docker](https://www.docker.com/) and a [Mistral API key](https://console.mistral.ai/) (free tier works).
+Понадобятся [Docker](https://www.docker.com/) и [API-ключ Mistral](https://console.mistral.ai/) (бесплатного тира хватает).
 
 ```bash
 git clone https://github.com/Nekebab/multiagent-interviewer.git
 cd multiagent-interviewer
 
 cp .env.example .env
-# edit .env and set MISTRAL_API_KEY=...
+# отредактировать .env, прописать MISTRAL_API_KEY=...
 
 docker compose build
 docker compose run --rm app
 ```
 
-First run downloads ~3 GB of embedding/reranker models into a Docker volume; subsequent runs start in seconds.
+Первый запуск качает ~3 ГБ моделей в Docker volume; последующие запуски — за секунды.
 
-## Architecture
+## Архитектура
 
 ```mermaid
 graph LR
-    User([Candidate]) -->|answer| State[(InterviewState<br/>Pydantic)]
-    State --> Expert[Expert Agent<br/>analyzes answer]
-    Expert --> Manager[Manager Agent<br/>strategic decision]
-    Manager --> Interviewer[Interviewer Agent<br/>asks question]
-    Interviewer -->|question| User
+    User([Кандидат]) -->|ответ| State[(InterviewState<br/>Pydantic)]
+    State --> Expert[Expert Agent<br/>анализ ответа]
+    Expert --> Manager[Manager Agent<br/>стратегические решения]
+    Manager --> Interviewer[Interviewer Agent<br/>формулировка вопроса]
+    Interviewer -->|вопрос| User
 
-    Expert -.->|search| RAG[(Hybrid RAG<br/>BM25 + bi-encoder<br/>+ cross-encoder)]
-    Manager -.->|search| RAG
+    Expert -.->|поиск| RAG[(Гибридный RAG<br/>BM25 + bi-encoder<br/>+ cross-encoder)]
+    Manager -.->|поиск| RAG
 
-    Interviewer --> Final{End?}
-    Final -->|no| User
-    Final -->|yes| Feedback[Final Feedback<br/>calibrated verdict]
+    Interviewer --> Final{Завершить?}
+    Final -->|нет| User
+    Final -->|да| Feedback[Финальный фидбэк<br/>откалиброванный вердикт]
 ```
 
-Each turn is a single graph invocation: `expert → manager → interviewer → END`. The graph runs once per candidate response. Between turns, the CLI captures user input. State is a Pydantic `BaseModel` — every transition is validated.
+Каждый ход — одно обращение к графу: `expert → manager → interviewer → END`. Граф запускается раз на ответ кандидата. Между ходами CLI собирает ввод. State — Pydantic `BaseModel`, каждая трансформация валидируется.
 
-For a deeper dive into agent prompts, state design, retry logic, and trade-offs: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+Подробно про промпты, дизайн state, retry-логику и trade-offs: [`docs/ARCHITECTURE.ru.md`](docs/ARCHITECTURE.ru.md).
 
-## Key features
+## Ключевые особенности
 
-### Multi-agent orchestration via LangGraph
-Three single-responsibility agents (Expert, Manager, Interviewer) instead of one monolithic prompt. Each agent has its own Jinja2 template, structured Pydantic output, and isolated context.
+### Multi-agent оркестрация через LangGraph
+Три агента с одной зоной ответственности (Expert, Manager, Interviewer) вместо одного монолитного промпта. У каждого свой Jinja2-шаблон, structured Pydantic output и изолированный контекст.
 
-### Hybrid retrieval
-RAG combines lexical (BM25 with Russian lemmatization via [pymorphy3](https://github.com/no-plagiarizm/pymorphy3)) and dense (bi-encoder via [sentence-transformers](https://www.sbert.net/)) retrieval, then reranks with a cross-encoder. This is the standard production-grade RAG stack — significantly better recall than vector search alone.
 
-### Calibrated final assessment
-The final feedback is **not** trusted blindly from the LLM. Instead:
-- A calibration table in the prompt explicitly maps confidence ranges to data volume.
-- Deterministic post-processing caps confidence based on the number of substantive turns.
-- Behavioral red flags (off-topic deflections, evasions, factual confusion) downgrade the recommendation regardless of technical content.
+### Гибридный retrieval
+RAG комбинирует лексический поиск (BM25 с русской лемматизацией через [pymorphy3](https://github.com/no-plagiarizm/pymorphy3)) и dense (bi-encoder через [sentence-transformers](https://www.sbert.net/)), затем ранжирует cross-encoder'ом. Это стандартный production-grade RAG-стек — recall значительно лучше, чем у чисто векторного поиска.
 
-This addresses **positivity bias** — a well-known issue where RLHF-trained models default to encouraging assessments. See [`docs/ARCHITECTURE.md#calibration`](docs/ARCHITECTURE.md#calibration) for details.
+### Откалиброванная финальная оценка
+Финальный фидбэк **не** доверяется LLM напрямую. Вместо этого:
+- Калибровочная таблица в промпте явно связывает диапазоны confidence с объёмом данных.
+- Детерминированный post-processing ограничивает confidence по числу ходов с ответами.
+- Поведенческие red flags (off-topic, уход от ответа, базовые ошибки) понижают рекомендацию независимо от технического содержания.
 
-### Defense-in-depth for structured output
-LLMs occasionally return malformed JSON despite explicit instructions: arrays where strings are expected, schema-shaped objects instead of data, JSON-wrapped text in plain-text fields. The system handles these at three layers:
-1. **Prompt-level**: explicit format instructions plus a concrete example built from the Pydantic schema.
-2. **Validator-level**: Pydantic `field_validator(mode="before")` coerces common deviations (e.g. list→string for the manager's `direction` field).
-3. **Post-processing**: regex-free unwrapping of accidentally-JSONified responses (`_strip_json_wrapper` in the interviewer).
+Это решает **positivity bias** — известную проблему RLHF-моделей, склонных к мягким оценкам. Подробно — [`docs/ARCHITECTURE.ru.md#калибровка`](docs/ARCHITECTURE.ru.md#калибровка).
 
-### Production-grade engineering
-- **110+ tests** covering RAG, agents, graph, feedback, and CLI flows.
-- **Strict mypy** (`warn_return_any`, `disallow_untyped_defs`, `no_implicit_optional`).
-- **Ruff** for lint and formatting; **pre-commit** runs the whole stack.
-- **Multi-stage Docker build** with CPU-only PyTorch (~1.5 GB image vs ~5 GB with CUDA).
-- **Tenacity-based retry** that handles HTTP 429 (rate limit) and 5xx with exponential backoff.
-- **Loguru-safe retry logging** — works around a known gotcha where exception messages containing `{...}` (e.g. JSON error bodies from APIs) crash loguru's `str.format`-style logger.
+### Defense-in-depth для structured output
+LLM иногда возвращают невалидный JSON несмотря на инструкции: массивы вместо строк, объекты-как-схемы вместо данных, JSON-обёртки в plain-text полях. Система обрабатывает это в трёх слоях:
+1. **На уровне промпта**: явные инструкции по формату плюс конкретный пример, построенный из Pydantic-схемы.
+2. **На уровне валидаторов**: Pydantic `field_validator(mode="before")` приводит частые отклонения к нужному типу (например, list→string для `direction` менеджера).
+3. **На уровне post-processing**: распаковка случайно-JSON-нутых ответов без regex (`_strip_json_wrapper` в interviewer'е).
 
-## Tech stack
+### Production-уровень инженерии
+- **110+ тестов** покрывают RAG, агентов, граф, feedback, CLI.
+- **Строгий mypy** (`warn_return_any`, `disallow_untyped_defs`, `no_implicit_optional`).
+- **Ruff** для линта и форматирования; **pre-commit** запускает весь стек.
+- **Multi-stage Docker** с CPU-only PyTorch (~1.5 ГБ образ против ~5 ГБ с CUDA).
+- **Tenacity-based retry** обрабатывает HTTP 429 (rate limit) и 5xx с экспоненциальным backoff.
+- **Loguru-safe retry logging** — обходит известную проблему: сообщения исключений с `{...}` (например, JSON-тело ошибки API) ломают `str.format`-логгер loguru.
 
-| Layer | Tool |
+## Стек
+
+| Слой | Инструмент |
 |---|---|
-| Orchestration | LangGraph |
-| Validation | Pydantic v2 |
+| Оркестрация | LangGraph |
+| Валидация | Pydantic v2 |
 | LLM | Mistral (default), pluggable |
 | Embeddings | sentence-transformers |
-| Lexical search | rank-bm25 + pymorphy3 |
-| Dense search | FAISS (CPU) |
-| Templates | Jinja2 (`StrictUndefined`) |
-| Logging | Loguru |
-| Retry | Tenacity|
+| Лексический поиск | rank-bm25 + pymorphy3 |
+| Dense-поиск | FAISS (CPU) |
+| Шаблоны | Jinja2 (`StrictUndefined`) |
+| Логирование | Loguru |
+| Retry | Tenacity |
 | Packaging | uv + hatchling |
-| Linting | Ruff |
+| Линтинг | Ruff |
 | Type-checking | mypy |
 
-## Project structure
+## Структура проекта
 
 ```
 multiagent-interviewer/
 ├── src/multiagent_interviewer/
 │   ├── agents/                # Expert, Manager, Interviewer node factories
 │   ├── graph/
-│   │   ├── builder.py         # LangGraph assembly
-│   │   └── state.py           # Pydantic models for state and structured outputs
+│   │   ├── builder.py         # Сборка графа LangGraph
+│   │   └── state.py           # Pydantic-модели state и structured outputs
 │   ├── llm/
-│   │   └── client.py          # Provider-agnostic LLM client + retry
-│   ├── prompts/               # Jinja2 templates (expert.j2, manager.j2, interviewer.j2)
+│   │   └── client.py          # Provider-agnostic LLM-клиент + retry
+│   ├── prompts/               # Jinja2-шаблоны (expert.j2, manager.j2, interviewer.j2)
 │   ├── rag/
 │   │   ├── retriever.py       # Hybrid BM25 + bi-encoder + cross-encoder
-│   │   └── system.py          # CSV loader, chunking
-│   ├── cli.py                 # Interactive entry point
+│   │   └── system.py          # CSV-загрузчик, chunking
+│   ├── cli.py                 # Интерактивная точка входа
 │   ├── config.py              # Pydantic Settings
-│   ├── feedback.py            # Final assessment with calibration policies
+│   ├── feedback.py            # Финальная оценка с calibration policies
 │   └── logging_setup.py
-├── tests/                     # 110+ tests, all green
+├── tests/                     # 110+ тестов, всё зелёное
 ├── docs/
 │   ├── ARCHITECTURE.md        # Design decisions, trade-offs
-│   └── PROMPTING.md           # Prompt engineering details
-├── examples/                  # Sample interview reports (JSON)
+│   └── PROMPTING.md           # Детали prompt engineering
+├── examples/                  # Примеры отчётов интервью (JSON)
 ├── Dockerfile                 # Multi-stage, CPU-only, non-root
-├── docker-compose.yml         # Dev setup with volume mounts
+├── docker-compose.yml         # Dev-конфигурация с volume mounts
 ├── pyproject.toml
 └── uv.lock
 ```
 
-## Configuration
+## Конфигурация
 
-All configuration via environment variables (see `.env.example`):
+Вся настройка через переменные окружения (см. `.env.example`):
 
-| Variable | Default | Description |
+| Переменная | Default | Описание |
 |---|---|---|
-| `MISTRAL_API_KEY` | (required) | Your Mistral API key |
-| `LLM_MODEL` | `mistral-large-latest` | Model name |
+| `MISTRAL_API_KEY` | (required) | API-ключ Mistral |
+| `LLM_MODEL` | `mistral-large-latest` | Имя модели |
 | `LLM_TEMPERATURE` | `0.7` | Sampling temperature |
-| `MAX_TURNS` | `10` | Hard cap on interview length |
-| `MIN_TURNS_BEFORE_END` | `8` | Manager cannot end before this |
-| `CHUNK_SIZE` | `500` | RAG chunk size in characters |
-| `CHUNK_OVERLAP` | `50` | RAG chunk overlap |
-| `LOG_LEVEL` | `INFO` | Loguru log level |
+| `MAX_TURNS` | `10` | Жёсткий потолок длины интервью |
+| `MIN_TURNS_BEFORE_END` | `8` | Manager не завершит до этого |
+| `CHUNK_SIZE` | `500` | Размер чанка RAG в символах |
+| `CHUNK_OVERLAP` | `50` | Перекрытие чанков RAG |
+| `LOG_LEVEL` | `INFO` | Уровень логирования loguru |
 
-## Development
+## Разработка
 
 ```bash
-# Install dependencies (creates .venv)
+# Установить зависимости (создаст .venv)
 uv sync
 
-# Run tests
+# Прогнать тесты
 uv run pytest -v
 
-# Lint and format
+# Линт и форматирование
 uv run ruff check
 uv run ruff format
 
 # Type-check
 uv run mypy src tests
 
-# Run all checks (pre-commit)
+# Все проверки (pre-commit)
 uv run pre-commit run --all-files
 
-# Run locally without Docker
+# Запуск локально без Docker
 uv run multiagent-interviewer
 ```
 
-## Engineering challenges solved
+## Решённые инженерные задачи
 
-A few problems that turned out to be more interesting than expected:
+Несколько проблем, которые оказались интереснее, чем выглядели:
 
-- **PyTorch pulls 2.5 GB of CUDA libraries by default**, even on machines with no GPU. The Docker image went from 5 GB to 1.5 GB after pinning torch to the CPU-only index via `[tool.uv.sources]`.
+- **PyTorch по умолчанию тянет 2.5 ГБ CUDA-библиотек**, даже на машинах без GPU. Образ Docker уменьшился с 5 ГБ до 1.5 ГБ после переключения torch на CPU-only индекс через `[tool.uv.sources]`.
 
-- **Loguru + Tenacity's `before_sleep_log` crash on JSON error messages.** Tenacity passes the exception text to loguru's `str.format`-style logger; if the exception contains `{...}` (e.g. an API error body), loguru tries to interpret the braces as placeholders and raises `KeyError`. Solved with a custom `before_sleep` callback that uses positional `{}` placeholders.
 
-- **LLMs sometimes return JSON Schema instead of data matching the schema.** The fix wasn't a better prompt — it was including a concrete example built dynamically from `model_fields` (via `_example_from_schema`) alongside the schema. Most failures disappeared.
+- **Loguru + Tenacity `before_sleep_log` крашится на JSON-сообщениях.** Tenacity передаёт текст исключения в `str.format`-стиль логгер loguru; если в исключении есть `{...}` (например, JSON-тело API-ошибки), loguru пытается интерпретировать скобки как placeholder'ы и падает с `KeyError`. Решено кастомным `before_sleep` callback'ом с позиционными `{}` placeholder'ами.
 
-- **Manager agent occasionally returned `direction` as a list of strings instead of a single string.** Pydantic `field_validator(mode="before")` coerces lists into newline-separated strings without changing the schema.
+- **LLM иногда возвращают JSON Schema вместо данных, соответствующих схеме.** Решилось не лучшим промптом — а добавлением конкретного примера, динамически собираемого из `model_fields` (через `_example_from_schema`) рядом со схемой. Большинство ошибок исчезло.
 
-- **The first version of final feedback gave "Strong Hire 90%" for a single answer.** Solved with a calibration table in the prompt, deterministic confidence caps based on turn count, and behavioral-flag-triggered downgrades. Detailed in [`docs/ARCHITECTURE.md#calibration`](docs/ARCHITECTURE.md#calibration).
+- **Manager-агент периодически возвращал `direction` как массив строк вместо одной строки.** Pydantic `field_validator(mode="before")` приводит list к строке через newline-join, не меняя схему.
+
+- **Первая версия финального фидбэка выдавала "Strong Hire 90%" по одному ответу.** Решилось калибровочной таблицей в промпте, детерминированными confidence caps по количеству ходов, отдельным вердиктом `INSUFFICIENT_DATA`, и downgrade рекомендации при поведенческих red flags. Подробно — [`docs/ARCHITECTURE.ru.md#калибровка`](docs/ARCHITECTURE.ru.md#калибровка).
 
 ## Roadmap
 
-- **Rolling conversation memory**: summarize older turns to extend interview length without context bloat.
-- **Conditional graph edges**: skip redundant Expert/Manager calls on the first turn.
-- **Web frontend**: streaming interface (FastAPI + minimal React) for showcasing the system without a terminal.
-- **LangSmith / Langfuse integration**: production-grade tracing of agent decisions.
+- **Rolling conversation memory**: суммаризация старых ходов для удлинения интервью без распухания контекста.
+- **Условные рёбра графа**: пропускать избыточные Expert/Manager на первом ходу.
+- **Web frontend**: streaming-интерфейс (FastAPI + минимальный React) для демо без терминала.
+- **Интеграция LangSmith / Langfuse**: production-grade трассировка решений агентов.
 
-## License
+## Лицензия
 
-MIT — see [LICENSE](LICENSE).
+MIT — см. [LICENSE](LICENSE).

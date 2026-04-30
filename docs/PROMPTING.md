@@ -203,4 +203,4 @@ A few patterns worth adopting in larger systems:
 
 **Few-shot example pool.** Currently the structured-output example is auto-generated from the schema (zero-shot). Real production systems maintain a small pool of high-quality input/output pairs and pick the most relevant ones at prompt time. This typically halves the error rate on edge cases.
 
-These are out of scope for this version, but on the [Roadmap](../README.md#roadmap).
+These are out of scope for this version, but on the [Roadmap](../README.en.md#roadmap).

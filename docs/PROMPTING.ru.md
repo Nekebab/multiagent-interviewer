@@ -204,4 +204,4 @@ KEY HEURISTICS:
 
 **Пул few-shot примеров.** Сейчас пример для structured output генерируется автоматически из схемы (zero-shot). Реальные production-системы поддерживают небольшой пул высококачественных пар input/output и подбирают самые релевантные на этапе формирования промпта. Это обычно вдвое снижает error rate на edge cases.
 
-Это вне scope этой версии, но в [Roadmap](../README.ru.md#roadmap).
+Это вне scope этой версии, но в [Roadmap](../README.md#roadmap).

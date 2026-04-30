@@ -2,7 +2,7 @@
 
 > [Русская версия](ARCHITECTURE.ru.md)
 
-This document explains how the system is built, what design decisions were made, and what trade-offs they involve. It complements the [README](../README.md).
+This document explains how the system is built, what design decisions were made, and what trade-offs they involve. It complements the [README](../README.en.md).
 
 ## Table of contents
 

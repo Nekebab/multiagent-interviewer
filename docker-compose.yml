@@ -15,9 +15,13 @@ services:
     volumes:
       - ./src:/app/src:ro
 
+      - ./data:/app/data:ro
+
       - hf-cache:/home/app/.cache/huggingface
 
       - ./output:/app/output
+
+
 
 volumes:
   hf-cache:
